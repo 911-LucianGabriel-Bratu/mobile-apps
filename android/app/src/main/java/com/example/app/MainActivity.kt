@@ -3,45 +3,50 @@ package com.example.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
+import com.example.app.appbar.AppBar
+import com.example.app.drawer.DrawerBody
+import com.example.app.drawer.DrawerHeader
+import com.example.app.drawer.MenuItem
 import com.example.app.ui.theme.AppTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         setContent {
             AppTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    SmallTopBar()
-                    HideSystemUi()
-                }
+                MainContent()
+                HideSystemUi()
             }
         }
     }
@@ -49,41 +54,89 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SmallTopBar(){
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            CenterAlignedTopAppBar(
-                modifier = Modifier.background(
-                    Brush.horizontalGradient(colors = listOf(
-                        Color(0xFFD06400),
-                        Color(0xFFA75000)
-                    ))
+fun MainContent(){
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = {
+            ModalDrawerSheet(drawerContainerColor = MaterialTheme.colorScheme.secondary){
+                DrawerHeader()
+                DrawerBody(items = listOf(
+                    MenuItem(
+                        id = "home",
+                        title = "Main menu",
+                        contentDescription = "Main menu",
+                        icon = Icons.Default.Home
+                    ),
+                    MenuItem(
+                        id = "orders",
+                        title = "My orders",
+                        contentDescription = "My orders",
+                        icon = Icons.Default.ShoppingCart
+                    ),
+                    MenuItem(
+                        id = "products",
+                        title = "All products",
+                        contentDescription = "All products",
+                        icon = Icons.Default.List
+                    ),
+                    MenuItem(
+                        id = "products_sale",
+                        title = "Products on sale",
+                        contentDescription = "Products on sale",
+                        icon = Icons.Default.Favorite
+                    ),
+                    MenuItem(
+                        id = "deliveries",
+                        title = "About deliveries",
+                        contentDescription = "About deliveries",
+                        icon = Icons.Default.LocationOn
+                    ),
+                    MenuItem(
+                        id = "about",
+                        title = "About us",
+                        contentDescription = "About us",
+                        icon = Icons.Default.Info
+                    )
                 ),
-                colors = TopAppBarDefaults.smallTopAppBarColors(
-                    containerColor = Color.Transparent
-                ),
-                title = {
-
-                },
-                navigationIcon = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(
-                            imageVector = Icons.Default.Menu,
-                            contentDescription = "Localized description",
-                            tint = Color.Black)
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
+                    onItemClick = {
+                        println("Clicked on ${it.title}")
+                    })
+            }
         },
+        gesturesEnabled = drawerState.isOpen
     ) {
-            paddingValues -> Column(modifier = Modifier.padding(paddingValues)) {
+        Scaffold(
+            topBar = {
+                AppBar(onNavigationIconClick = {
+                    scope.launch{
+                        drawerState.apply {
+                            if(isClosed) open() else close()
+                        }
+                    }
+                })
+            },
+        ) {
+            innerPadding ->
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ){
+                Text(text = "Something")
+            }
+        }
+    }
+}
 
+@Composable
+inline fun <reified T: ViewModel> NavBackStackEntry.sharedViewModel(navController: NavController): T{
+    val navGraphRoute = destination.parent?.route ?: return viewModel()
+    val parentEntry = remember(this){
+        navController.getBackStackEntry(navGraphRoute)
     }
-    }
+    return viewModel(parentEntry)
 }
 
 @Composable
@@ -101,7 +154,6 @@ fun HideSystemUi(){
 @Composable
 fun GreetingPreview() {
     AppTheme {
-        SmallTopBar()
         HideSystemUi()
     }
 }
