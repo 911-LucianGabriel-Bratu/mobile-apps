@@ -5,6 +5,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Favorite
@@ -19,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
@@ -66,8 +69,7 @@ fun Navigation() {
                 )
             }
         ){
-            MainContent(navController)
-            HomeScreen()
+            MainContent("Home", navController) { HomeScreen() }
         }
         composable(
             route = Routes.orders,
@@ -78,8 +80,7 @@ fun Navigation() {
                 )
             }
         ){
-            MainContent(navController)
-            OrdersScreen()
+            MainContent("Orders", navController) { OrdersScreen() }
         }
         composable(
             route = Routes.products,
@@ -90,8 +91,7 @@ fun Navigation() {
                 )
             }
         ){
-            MainContent(navController)
-            ProductsScreen()
+            MainContent("Products", navController) { ProductsScreen() }
         }
         composable(
             route = Routes.products_sale,
@@ -102,8 +102,7 @@ fun Navigation() {
                 )
             }
         ){
-            MainContent(navController)
-            ProductsScreen()
+            MainContent("Products", navController) { ProductsScreen() }
         }
         composable(
             route = Routes.deliveries,
@@ -114,8 +113,7 @@ fun Navigation() {
                 )
             }
         ){
-            MainContent(navController)
-            DeliveriesScreen()
+            MainContent("Deliveries", navController) { DeliveriesScreen() }
         }
         composable(
             route = Routes.about,
@@ -126,7 +124,7 @@ fun Navigation() {
                 )
             }
         ){
-            MainContent(navController)
+            MainContent("About", navController) { AboutScreen() }
             AboutScreen()
         }
         composable(
@@ -146,7 +144,9 @@ fun Navigation() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContent(
-    navController: NavController
+    appBarTitle: String,
+    navController: NavController,
+    auxContainer : @Composable() () -> Unit
 ){
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -230,7 +230,7 @@ fun MainContent(
     ) {
         Scaffold(
             topBar = {
-                AppBar(onNavigationIconClick = {
+                AppBar(appBarTitle ,onNavigationIconClick = {
                     scope.launch{
                         drawerState.apply {
                             if(isClosed) open() else close()
@@ -242,12 +242,14 @@ fun MainContent(
                 innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding),
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ){
-
+                auxContainer()
             }
         }
+
     }
 }
 
