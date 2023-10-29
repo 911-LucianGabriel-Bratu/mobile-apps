@@ -21,6 +21,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -33,10 +36,24 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.example.app.model.db.AppDatabase
+import com.example.app.repository.InstrumentBrandsRepository
+import com.example.app.repository.InstrumentCategoriesRepository
+import com.example.app.service.InstrumentBrandsService
+import com.example.app.service.InstrumentCategoriesService
 import utils.CardElement
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(appDatabase: AppDatabase) {
+    val instrumentBrandsService = remember{
+        InstrumentBrandsService(InstrumentBrandsRepository(appDatabase.instrumentBrandsDao()))
+    }
+    val instrumentCategoriesService = remember{
+        InstrumentCategoriesService(InstrumentCategoriesRepository(appDatabase.instrumentCategoriesDao()))
+    }
+    val categoriesList by instrumentCategoriesService.allInstrumentCategories.collectAsState(initial = emptyList())
+
+    val brandsList by instrumentBrandsService.allInstrumentBrands.collectAsState(initial = emptyList())
     Surface(
         modifier = Modifier
             .fillMaxSize(),
@@ -85,21 +102,16 @@ fun HomeScreen() {
                         contentPadding = PaddingValues(horizontal = 8.dp),
                         modifier = Modifier.padding(vertical = 2.dp)
                     ) {
-                        item {
-                            CardElement(cardImage = "https://thenounproject.com/api/private/icons/77928/edit/?backgroundShape=SQUARE&backgroundShapeColor=%23000000&backgroundShapeOpacity=0&exportSize=752&flipX=false&flipY=false&foregroundColor=%23000000&foregroundOpacity=1&imageFormat=png&rotation=0", cardText = "Electric guitars")
-                        }
-
-                        item {
-                            CardElement(cardImage = "https://thenounproject.com/api/private/icons/367516/edit/?backgroundShape=SQUARE&backgroundShapeColor=%23000000&backgroundShapeOpacity=0&exportSize=752&flipX=false&flipY=false&foregroundColor=%23000000&foregroundOpacity=1&imageFormat=png&rotation=0", cardText = "Bass guitars")
-                        }
-
-                        item {
-                            CardElement(cardImage = "https://cdn-icons-png.flaticon.com/512/1002/1002081.png", cardText = "Keyboards")
+                        categoriesList.forEach {category ->
+                            item {
+                                CardElement(cardImage = category.pngUrl, cardText = category.instrumentCategoryName)
+                            }
                         }
                     }
                 }
                 Column(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .padding(top = 40.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -111,16 +123,10 @@ fun HomeScreen() {
                         contentPadding = PaddingValues(horizontal = 8.dp),
                         modifier = Modifier.padding(vertical = 2.dp)
                     ) {
-                        item {
-                            CardElement(cardImage = "https://assets.stickpng.com/images/585aad184f6ae202fedf2913.png", cardText = "")
-                        }
-
-                        item {
-                            CardElement(cardImage = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Gibson_Guitar_logo.svg/1280px-Gibson_Guitar_logo.svg.png", cardText = "")
-                        }
-
-                        item {
-                            CardElement(cardImage = "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Ibanez_logo.svg/2560px-Ibanez_logo.svg.png", cardText = "")
+                        brandsList.forEach{brand ->
+                            item{
+                                CardElement(cardImage = brand.pngUrl, cardText = "")
+                            }
                         }
                     }
                 }

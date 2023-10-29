@@ -36,6 +36,7 @@ import com.example.app.appbar.AppBar
 import com.example.app.drawer.DrawerBody
 import com.example.app.drawer.DrawerHeader
 import com.example.app.drawer.MenuItem
+import com.example.app.model.db.AppDatabase
 import com.example.app.views.AboutScreen
 import com.example.app.views.DeliveriesScreen
 import com.example.app.views.HomeScreen
@@ -46,7 +47,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 
 @Composable
-fun Navigation() {
+fun Navigation(appDatabase: AppDatabase) {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = Routes.login){
         composable(
@@ -69,7 +70,7 @@ fun Navigation() {
                 )
             }
         ){
-            MainContent("Home", navController) { HomeScreen() }
+            MainContent("Home", navController) { HomeScreen(appDatabase) }
         }
         composable(
             route = Routes.orders,
