@@ -37,6 +37,10 @@ class MusicalInstrumentsRepository(private val musicalInstrumentsDao: MusicalIns
         return musicalInstrumentsDao.getInstrumentsByBrand(brandID)
     }
 
+    fun getMusicalInstrumentsBySale(): Flow<List<MusicalInstruments>> {
+        return musicalInstrumentsDao.getInstrumentsOnSale()
+    }
+
     suspend fun getMusicalInstrumentByID(id: Int): MusicalInstruments? {
             return musicalInstrumentsDao.getInstrumentById(id)
     }

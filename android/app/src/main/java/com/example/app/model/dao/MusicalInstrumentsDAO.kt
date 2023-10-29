@@ -30,4 +30,7 @@ interface MusicalInstrumentsDAO {
 
     @Query("SELECT * FROM MusicalInstruments WHERE instrumentBrandID = :brandId")
     fun getInstrumentsByBrand(brandId: Int): Flow<List<MusicalInstruments>>
+
+    @Query("SELECT * FROM MusicalInstruments WHERE onSale = 1")
+    fun getInstrumentsOnSale(): Flow<List<MusicalInstruments>>
 }

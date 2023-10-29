@@ -28,6 +28,10 @@ class MusicalInstrumentsService(private val repository: MusicalInstrumentsReposi
         return repository.getMusicalInstrumentsByBrand(brandID)
     }
 
+    fun getMusicalInstrumentsBySale(): Flow<List<MusicalInstruments>> {
+        return repository.getMusicalInstrumentsBySale()
+    }
+
     suspend fun getMusicalInstrumentByID(id: Int): MusicalInstruments? {
         return repository.getMusicalInstrumentByID(id)
     }

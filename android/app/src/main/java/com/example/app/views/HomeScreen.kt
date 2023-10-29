@@ -44,13 +44,7 @@ import com.example.app.service.InstrumentCategoriesService
 import utils.CardElement
 
 @Composable
-fun HomeScreen(appDatabase: AppDatabase) {
-    val instrumentBrandsService = remember{
-        InstrumentBrandsService(InstrumentBrandsRepository(appDatabase.instrumentBrandsDao()))
-    }
-    val instrumentCategoriesService = remember{
-        InstrumentCategoriesService(InstrumentCategoriesRepository(appDatabase.instrumentCategoriesDao()))
-    }
+fun HomeScreen(instrumentBrandsService: InstrumentBrandsService, instrumentCategoriesService: InstrumentCategoriesService) {
     val categoriesList by instrumentCategoriesService.allInstrumentCategories.collectAsState(initial = emptyList())
 
     val brandsList by instrumentBrandsService.allInstrumentBrands.collectAsState(initial = emptyList())
@@ -67,11 +61,11 @@ fun HomeScreen(appDatabase: AppDatabase) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 40.dp)
+                    .padding(bottom = 40.dp)
 
             ){
                 AsyncImage(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxWidth(),
                     model = "https://uk.yamaha.com/en/files/01_4daddcd68b7c7ed989db04be709a653a.jpg?impolicy=resize&imwid=1200&imhei=480",
                     contentDescription = "",
                     alignment = Alignment.TopCenter

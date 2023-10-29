@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -37,6 +38,12 @@ import com.example.app.drawer.DrawerBody
 import com.example.app.drawer.DrawerHeader
 import com.example.app.drawer.MenuItem
 import com.example.app.model.db.AppDatabase
+import com.example.app.repository.InstrumentBrandsRepository
+import com.example.app.repository.InstrumentCategoriesRepository
+import com.example.app.repository.MusicalInstrumentsRepository
+import com.example.app.service.InstrumentBrandsService
+import com.example.app.service.InstrumentCategoriesService
+import com.example.app.service.MusicalInstrumentsService
 import com.example.app.views.AboutScreen
 import com.example.app.views.DeliveriesScreen
 import com.example.app.views.HomeScreen
@@ -49,6 +56,15 @@ import kotlinx.coroutines.launch
 @Composable
 fun Navigation(appDatabase: AppDatabase) {
     val navController = rememberNavController()
+    val instrumentBrandsService = remember{
+        InstrumentBrandsService(InstrumentBrandsRepository(appDatabase.instrumentBrandsDao()))
+    }
+    val instrumentCategoriesService = remember{
+        InstrumentCategoriesService(InstrumentCategoriesRepository(appDatabase.instrumentCategoriesDao()))
+    }
+    val musicalInstrumentService = remember {
+        MusicalInstrumentsService(MusicalInstrumentsRepository(appDatabase.musicalInstrumentsDao()))
+    }
     NavHost(navController = navController, startDestination = Routes.login){
         composable(
             route = Routes.login,
@@ -70,7 +86,7 @@ fun Navigation(appDatabase: AppDatabase) {
                 )
             }
         ){
-            MainContent("Home", navController) { HomeScreen(appDatabase) }
+            MainContent("Home", navController) { HomeScreen(instrumentBrandsService, instrumentCategoriesService) }
         }
         composable(
             route = Routes.orders,
@@ -92,7 +108,8 @@ fun Navigation(appDatabase: AppDatabase) {
                 )
             }
         ){
-            MainContent("Products", navController) { ProductsScreen() }
+            MainContent("Products", navController) { ProductsScreen(musicalInstrumentService,
+                onSaleFlag = false, categoryFlag = false, brandFlag = false, -1, -1) }
         }
         composable(
             route = Routes.products_sale,
@@ -103,7 +120,8 @@ fun Navigation(appDatabase: AppDatabase) {
                 )
             }
         ){
-            MainContent("Products", navController) { ProductsScreen() }
+            MainContent("Products", navController) { ProductsScreen(musicalInstrumentService,
+                onSaleFlag = true, categoryFlag = false, brandFlag = false, -1, -1) }
         }
         composable(
             route = Routes.deliveries,
@@ -243,8 +261,7 @@ fun MainContent(
                 innerPadding ->
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState()),
+                    .padding(innerPadding),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ){
                 auxContainer()
