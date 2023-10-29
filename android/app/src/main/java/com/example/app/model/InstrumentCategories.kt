@@ -4,8 +4,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "InstrumentCategories")
+@Entity
 data class InstrumentCategories(
-    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "instrumentCategoryID") val instrumentCategoryID: Int,
-    @ColumnInfo(name = "instrumentCategoryName") val instrumentCategoryName: String
+    @PrimaryKey(autoGenerate = true) val instrumentCategoryID: Int,
+    val instrumentCategoryName: String,
+    val pngUrl: String
     ) {}
