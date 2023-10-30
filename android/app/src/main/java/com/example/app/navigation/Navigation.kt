@@ -174,7 +174,7 @@ fun Navigation(appDatabase: AppDatabase) {
         composable(
             route = Routes.editOrder,
         ){
-            EditOrderPage()
+            EditOrderPage(ordersService, navController)
         }
         composable(
             route = Routes.cancelOrder,

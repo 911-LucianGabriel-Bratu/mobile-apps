@@ -61,7 +61,10 @@ fun OrdersCardElement(orderID: Int, orderedAt: Date, quantity: Int, totalPrice: 
                 horizontalArrangement = Arrangement.Center
             ) {
                 IconButton(
-                    onClick = { navController.navigate(Routes.editOrder.replace("{data}", orderID.toString(), ignoreCase = true)) }
+                    onClick = { navController.navigate(Routes.editOrder.replace("{data}", orderID.toString(), ignoreCase = true)
+                        .replace("{quantity}", quantity.toString(), ignoreCase = true)
+                        .replace("{price}", totalPrice.toString(), ignoreCase = true))
+                    }
                 )
                 {
                     Icon(
