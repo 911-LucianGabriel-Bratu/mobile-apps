@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.example.app.appbar.AppBar
 import com.example.app.drawer.DrawerBody
@@ -41,10 +42,13 @@ import com.example.app.model.db.AppDatabase
 import com.example.app.repository.InstrumentBrandsRepository
 import com.example.app.repository.InstrumentCategoriesRepository
 import com.example.app.repository.MusicalInstrumentsRepository
+import com.example.app.repository.OrdersRepository
 import com.example.app.service.InstrumentBrandsService
 import com.example.app.service.InstrumentCategoriesService
 import com.example.app.service.MusicalInstrumentsService
+import com.example.app.service.OrdersService
 import com.example.app.views.AboutScreen
+import com.example.app.views.ConfirmationPage
 import com.example.app.views.DeliveriesScreen
 import com.example.app.views.HomeScreen
 import com.example.app.views.LoginForm
@@ -64,6 +68,9 @@ fun Navigation(appDatabase: AppDatabase) {
     }
     val musicalInstrumentService = remember {
         MusicalInstrumentsService(MusicalInstrumentsRepository(appDatabase.musicalInstrumentsDao()))
+    }
+    val ordersService = remember {
+        OrdersService(OrdersRepository(appDatabase.ordersDao()))
     }
     NavHost(navController = navController, startDestination = Routes.login){
         composable(
@@ -109,7 +116,7 @@ fun Navigation(appDatabase: AppDatabase) {
             }
         ){
             MainContent("Products", navController) { ProductsScreen(musicalInstrumentService,
-                onSaleFlag = false, categoryFlag = false, brandFlag = false, -1, -1) }
+                onSaleFlag = false, categoryFlag = false, brandFlag = false, -1, -1, navController) }
         }
         composable(
             route = Routes.products_sale,
@@ -121,7 +128,7 @@ fun Navigation(appDatabase: AppDatabase) {
             }
         ){
             MainContent("Products", navController) { ProductsScreen(musicalInstrumentService,
-                onSaleFlag = true, categoryFlag = false, brandFlag = false, -1, -1) }
+                onSaleFlag = true, categoryFlag = false, brandFlag = false, -1, -1, navController) }
         }
         composable(
             route = Routes.deliveries,
@@ -156,6 +163,11 @@ fun Navigation(appDatabase: AppDatabase) {
             }
         ){
             LoginScreen(navController)
+        }
+        composable(
+            route = Routes.confirmation,
+        ){
+            ConfirmationPage(navController, musicalInstrumentService, ordersService)
         }
     }
 }

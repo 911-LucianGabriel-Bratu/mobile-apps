@@ -9,5 +9,5 @@ object Routes {
     const val deliveries = "deliveries"
     const val about = "about"
     const val logout = "logout"
-    const val purchase = "purchase"
+    const val confirmation = "confirmation/{data}"
 }

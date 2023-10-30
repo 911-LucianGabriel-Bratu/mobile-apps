@@ -21,13 +21,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.app.model.MusicalInstruments
 import com.example.app.service.MusicalInstrumentsService
 import utils.ProductsCardElement
 
 @Composable
 fun ProductsScreen(musicalInstrumentsService: MusicalInstrumentsService, onSaleFlag: Boolean,
-                   categoryFlag: Boolean, brandFlag: Boolean, category: Int, brand: Int) {
+                   categoryFlag: Boolean, brandFlag: Boolean, category: Int, brand: Int, navController: NavController) {
 
     val musicalInstrumentsList by remember {
         when {
@@ -53,7 +54,8 @@ fun ProductsScreen(musicalInstrumentsService: MusicalInstrumentsService, onSaleF
                     description = musicalInstrument.description,
                     cardImage = musicalInstrument.pngUrl,
                     quantity = musicalInstrument.quantity,
-                    price = musicalInstrument.price
+                    price = musicalInstrument.price,
+                    navController = navController
                 )
             }
         }

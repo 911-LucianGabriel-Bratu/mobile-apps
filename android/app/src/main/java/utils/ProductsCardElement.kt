@@ -20,10 +20,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.example.app.navigation.Routes
+import com.example.app.views.ConfirmationPage
 
 @Composable
-fun ProductsCardElement(instrumentID: Int, instrumentName: String, description: String, cardImage: String, quantity: Int, price: Float){
+fun ProductsCardElement(instrumentID: Int, instrumentName: String, description: String,
+                        cardImage: String, quantity: Int, price: Float, navController: NavController){
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
@@ -46,7 +51,7 @@ fun ProductsCardElement(instrumentID: Int, instrumentName: String, description: 
             Spacer(Modifier.height(10.dp))
             Text(text = "Price: $price", color = MaterialTheme.colorScheme.tertiaryContainer, textAlign = TextAlign.Center)
             Spacer(Modifier.height(10.dp))
-            Button(onClick = {  }) {
+            Button(onClick = { navController.navigate(Routes.confirmation.replace("{data}", instrumentID.toString(), ignoreCase = true)) }) {
                 Text(text = "Purchase")
             }
         }

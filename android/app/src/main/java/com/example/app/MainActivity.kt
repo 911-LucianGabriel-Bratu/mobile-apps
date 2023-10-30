@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import com.example.app.model.InstrumentBrands
 import com.example.app.model.InstrumentCategories
 import com.example.app.model.MusicalInstruments
+import com.example.app.model.Users
 import com.example.app.model.db.AppDatabase
 import com.example.app.navigation.Navigation
 import com.example.app.repository.InstrumentBrandsRepository
@@ -96,6 +97,14 @@ class MainActivity : ComponentActivity() {
                         musicalInstrumentsService.addMusicalInstrument(MusicalInstruments(0, 2, 3, "Ibanez TMB30-IV", "Body: Poplar, Neck: Maple, Fretboard: Purpleheart", "https://thumbs.static-thomann.de/thumb/thumb220x220/pics/prod/387082.webp", 1090f, 20, false))
                         musicalInstrumentsService.addMusicalInstrument(MusicalInstruments(0, 2, 3, "Ibanez GSR180-BK", "Body: Poplar, Neck: Maple, Fretboard: Purpleheart", "https://thumbs.static-thomann.de/thumb/thumb220x220/pics/prod/177146.webp", 948f, 10, true))
 
+                    }
+
+                    var usersList: List<Users> = mutableListOf()
+                    usersService.allUsers.collect{
+                        users -> usersList = users
+                        if(usersList.isEmpty()){
+                            usersService.addUser(Users(1, "username", "password"))
+                        }
                     }
                 }
             }
