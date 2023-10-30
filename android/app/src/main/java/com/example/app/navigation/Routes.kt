@@ -10,4 +10,6 @@ object Routes {
     const val about = "about"
     const val logout = "logout"
     const val confirmation = "confirmation/{data}"
+    const val editOrder = "editOrder/{data}"
+    const val cancelOrder = "cancelOrder/{data}"
 }

@@ -41,7 +41,7 @@ fun ConfirmationPage(navController: NavController,
         Row(modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally)) {
             Button(onClick = {
                 navController.navigateUp()
-                placeOrder(Integer.parseInt(instrumentID!!), musicalInstrumentsService, ordersService)
+                placeOrder(Integer.parseInt(instrumentID), musicalInstrumentsService, ordersService)
             }){
                 Text(text = "Confirm")
             }
@@ -60,7 +60,7 @@ fun placeOrder(instrumentID: Int, musicalInstrumentsService: MusicalInstrumentsS
     CoroutineScope(Dispatchers.IO).launch {
         val musicalInstrument: MusicalInstruments? = musicalInstrumentsService.getMusicalInstrumentByID(instrumentID)
         if (musicalInstrument != null) {
-            ordersService.addOrder(Orders(0, musicalInstrument.musicalInstrumentID, 1, Date(), 1, 1f, false))
+            ordersService.addOrder(Orders(0, musicalInstrument.musicalInstrumentID, 1, Date(), 1, musicalInstrument.price, false))
         }
     }
 

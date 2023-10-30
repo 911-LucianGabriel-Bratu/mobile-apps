@@ -48,8 +48,10 @@ import com.example.app.service.InstrumentCategoriesService
 import com.example.app.service.MusicalInstrumentsService
 import com.example.app.service.OrdersService
 import com.example.app.views.AboutScreen
+import com.example.app.views.CancelOrderPage
 import com.example.app.views.ConfirmationPage
 import com.example.app.views.DeliveriesScreen
+import com.example.app.views.EditOrderPage
 import com.example.app.views.HomeScreen
 import com.example.app.views.LoginForm
 import com.example.app.views.OrdersScreen
@@ -104,7 +106,7 @@ fun Navigation(appDatabase: AppDatabase) {
                 )
             }
         ){
-            MainContent("Orders", navController) { OrdersScreen() }
+            MainContent("Orders", navController) { OrdersScreen(ordersService, navController) }
         }
         composable(
             route = Routes.products,
@@ -168,6 +170,16 @@ fun Navigation(appDatabase: AppDatabase) {
             route = Routes.confirmation,
         ){
             ConfirmationPage(navController, musicalInstrumentService, ordersService)
+        }
+        composable(
+            route = Routes.editOrder,
+        ){
+            EditOrderPage()
+        }
+        composable(
+            route = Routes.cancelOrder,
+        ){
+            CancelOrderPage(ordersService, navController)
         }
     }
 }
