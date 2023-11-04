@@ -1,5 +1,6 @@
 package com.example.app.views
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -56,10 +58,12 @@ fun CancelOrderPage(ordersService: OrdersService, navController: NavController){
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
+            val currentContext = LocalContext.current
             IconButton(
                 onClick = {
                     navController.navigateUp()
                     cancelOrder(Integer.parseInt(orderID), ordersService)
+                    Toast.makeText(currentContext, "Order cancelled", Toast.LENGTH_SHORT).show()
                 }
             )
             {

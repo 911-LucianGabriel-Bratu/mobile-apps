@@ -33,9 +33,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         appDatabase = AppDatabase.getDatabase(applicationContext)
-        CoroutineScope(Dispatchers.IO).launch {
-            populateDB(appDatabase)
-        }
+//        CoroutineScope(Dispatchers.IO).launch {
+//            populateDB(appDatabase)
+//        }
         setContent {
             AppTheme {
                 Navigation(appDatabase = appDatabase)

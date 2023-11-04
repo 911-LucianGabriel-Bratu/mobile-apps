@@ -109,10 +109,10 @@ fun EditOrderPage(ordersService: OrdersService, navController: NavController){
                     if(mutableQuantity != null && totalPrice != null){
                         if(mutableQuantity!!.toInt() > 0){
                             navController.navigateUp()
-                            updateOrder(Integer.parseInt(orderID), mutableQuantity!!.toInt(), totalPrice.toFloat(), ordersService)
+                            updateOrder(Integer.parseInt(orderID), mutableQuantity!!.toInt(), Integer.parseInt(quantity), totalPrice.toFloat(), ordersService)
                         }
                         else{
-                            Toast.makeText(currentContext, "Quantity < 0!", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(currentContext, "Quantity must be greater than 0!", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -141,9 +141,9 @@ fun EditOrderPage(ordersService: OrdersService, navController: NavController){
     }
 }
 
-fun updateOrder(orderID: Int, quantity: Int, totalPrice: Float, ordersService: OrdersService){
+fun updateOrder(orderID: Int, quantity: Int, oldQuantity: Int, totalPrice: Float, ordersService: OrdersService){
     CoroutineScope(Dispatchers.IO).launch {
-        val total: Float = totalPrice * quantity
+        val total: Float = (totalPrice/oldQuantity) * quantity
         val oldOrder: Orders? = ordersService.getOrderByID(orderID)
         if(oldOrder != null){
             val newOrder: Orders = Orders(orderID, oldOrder.musicalInstrumentID, oldOrder.userID, Date(), quantity, total, false)
