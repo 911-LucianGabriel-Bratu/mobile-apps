@@ -41,7 +41,7 @@ public class WebSocketCommunicationHandler extends TextWebSocketHandler implemen
     }
 
     @Scheduled(fixedRate = 5000)
-    void sendPeriodicMessages() throws IOException {
+    public void sendPeriodicMessages() throws IOException {
         for (WebSocketSession session : sessions) {
             if (session.isOpen()) {
                 String broadcast = "server periodic message " + LocalTime.now() + ": " + "test message";
