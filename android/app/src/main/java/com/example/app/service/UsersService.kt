@@ -12,6 +12,12 @@ class UsersService(private val repository: UsersRepository) {
         repository.addUser(newUser)
     }
 
+    fun insertAll(usersList: List<Users>){
+        usersList.forEach {
+            repository.addUser(it);
+        }
+    }
+
     fun deleteUser(user: Users) {
         repository.deleteUser(user)
     }

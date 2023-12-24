@@ -12,6 +12,12 @@ class InstrumentCategoriesService(private val repository: InstrumentCategoriesRe
         repository.addInstrumentCategory(newInstrumentCategory)
     }
 
+    fun insertAll(instrumentCategoriesList: List<InstrumentCategories>){
+        instrumentCategoriesList.forEach {
+            repository.addInstrumentCategory(it)
+        }
+    }
+
     fun deleteInstrumentCategory(instrumentCategory: InstrumentCategories) {
         repository.deleteInstrumentCategory(instrumentCategory)
     }

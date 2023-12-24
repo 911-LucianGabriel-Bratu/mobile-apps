@@ -1,6 +1,6 @@
 package com.example.appserver.config;
 
-import com.example.appserver.websocket.WebSocketCommunicationHandler;
+import com.example.appserver.websocket.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,10 +17,30 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(webSocketHandler(), "/api/ws/msg");
+        registry.addHandler(instrumentBrandsWebSocketHandler(), "/api/ws/fetch/instrument-brands");
+        registry.addHandler(instrumentCategoriesWebSocketHandler(), "/api/ws/fetch/instrument-categories");
+        registry.addHandler(musicalInstrumentsWebSocketHandler(), "/api/ws/fetch/musical-instruments");
+        registry.addHandler(ordersWebSocketHandler(), "/api/ws/fetch/orders");
+        registry.addHandler(usersWebSocketHandler(), "/api/ws/fetch/users");
     }
 
     @Bean
     public WebSocketHandler webSocketHandler() {
         return new WebSocketCommunicationHandler();
     }
+
+    @Bean
+    InstrumentBrandsWebSocketHandler instrumentBrandsWebSocketHandler() { return new InstrumentBrandsWebSocketHandler();}
+
+    @Bean
+    InstrumentCategoriesWebSocketHandler instrumentCategoriesWebSocketHandler() { return new InstrumentCategoriesWebSocketHandler(); }
+
+    @Bean
+    MusicalInstrumentsWebSocketHandler musicalInstrumentsWebSocketHandler() { return new MusicalInstrumentsWebSocketHandler(); }
+
+    @Bean
+    OrdersWebSocketHandler ordersWebSocketHandler() { return new OrdersWebSocketHandler(); }
+
+    @Bean
+    UsersWebSocketHandler usersWebSocketHandler() { return new UsersWebSocketHandler(); }
 }

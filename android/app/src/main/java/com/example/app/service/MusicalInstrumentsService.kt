@@ -12,6 +12,12 @@ class MusicalInstrumentsService(private val repository: MusicalInstrumentsReposi
         repository.addMusicalInstrument(newMusicalInstrument)
     }
 
+    fun insertAll(musicalInstrumentsList: List<MusicalInstruments>){
+        musicalInstrumentsList.forEach {
+            repository.addMusicalInstrument(it);
+        }
+    }
+
     fun deleteMusicalInstrument(musicalInstrument: MusicalInstruments) {
         repository.deleteMusicalInstrument(musicalInstrument)
     }

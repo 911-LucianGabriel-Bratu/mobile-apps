@@ -7,9 +7,11 @@ import okhttp3.WebSocketListener
 
 open class WebSocketListener: WebSocketListener() {
     private val TAG = "Test"
+    var response: String? = null
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
         super.onOpen(webSocket, response)
+        this.response = response.body?.string()
         //viewModel.setStatus(true)
         //webSocket.send("Android Device Connected")
         Log.d(TAG, "onOpen:")
@@ -17,6 +19,7 @@ open class WebSocketListener: WebSocketListener() {
 
     override fun onMessage(webSocket: WebSocket, text: String) {
         super.onMessage(webSocket, text)
+        this.response = text
         //viewModel.addMessage(Pair(false, text))
         Log.d(TAG, "onMessage: $text")
     }

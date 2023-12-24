@@ -65,6 +65,8 @@ import com.example.app.views.LoginForm
 import com.example.app.views.OrdersScreen
 import com.example.app.views.ProductsScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.Response
 import okhttp3.WebSocket
@@ -85,34 +87,42 @@ fun Navigation(appDatabase: AppDatabase) {
         OrdersService(OrdersRepository(appDatabase.ordersDao()))
     }
 
-    var receivedMessages by remember { mutableStateOf(emptyList<String>()) }
-    var isConnected by remember { mutableStateOf(false) }
-
-    val webSocketListener = remember {
-        object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) {
-                super.onOpen(webSocket, response)
-                isConnected = true
-            }
-
-            override fun onMessage(webSocket: WebSocket, text: String) {
-                super.onMessage(webSocket, text)
-                receivedMessages = receivedMessages + text
-            }
-
-            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                super.onFailure(webSocket, t, response)
-                isConnected = false;
-            }
-
-            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-                super.onClosing(webSocket, code, reason)
-                isConnected = false
-            }
-        }
-    }
-    var webSocketManager by remember { mutableStateOf(WebSocketManager(webSocketListener)) }
-    webSocketManager.connectWebSocket("ws://10.0.2.2:8080/api/ws/msg")
+//    var receivedMessages by remember { mutableStateOf(emptyList<String>()) }
+//    var isConnected by remember { mutableStateOf(false) }
+//
+//    val webSocketListener = remember {
+//        object : WebSocketListener() {
+//            override fun onOpen(webSocket: WebSocket, response: Response) {
+//                super.onOpen(webSocket, response)
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    isConnected = true;
+//                }
+//            }
+//
+//            override fun onMessage(webSocket: WebSocket, text: String) {
+//                super.onMessage(webSocket, text)
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    receivedMessages = receivedMessages + text
+//                }
+//            }
+//
+//            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+//                super.onFailure(webSocket, t, response)
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    isConnected = false;
+//                }
+//            }
+//
+//            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+//                super.onClosing(webSocket, code, reason)
+//                CoroutineScope(Dispatchers.Main).launch {
+//                    isConnected = false;
+//                }
+//            }
+//        }
+//    }
+//    var webSocketManager by remember { mutableStateOf(WebSocketManager(webSocketListener)) }
+//    webSocketManager.connectWebSocket("ws://10.0.2.2:8080/api/ws/msg")
 
 
     NavHost(navController = navController, startDestination = Routes.login){

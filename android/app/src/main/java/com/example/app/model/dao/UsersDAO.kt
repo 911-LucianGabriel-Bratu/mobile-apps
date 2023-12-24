@@ -3,6 +3,7 @@ package com.example.app.model.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.app.model.Users
@@ -10,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface UsersDAO {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(user: Users)
 
     @Update

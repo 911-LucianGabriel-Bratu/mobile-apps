@@ -7,8 +7,8 @@ import androidx.room.ForeignKey.Companion.CASCADE
 import androidx.room.PrimaryKey
 
 @Entity(foreignKeys = [
-        ForeignKey(entity = InstrumentCategories::class, parentColumns = ["instrumentCategoryID"], childColumns = ["instrumentCategoryID"], onDelete = CASCADE),
-        ForeignKey(entity = InstrumentBrands::class, parentColumns = ["instrumentBrandID"], childColumns = ["instrumentBrandID"], onDelete = CASCADE)
+        ForeignKey(entity = InstrumentCategories::class, parentColumns = ["instrumentCategoryID"], childColumns = ["instrumentCategoryID"], onDelete = CASCADE, onUpdate = CASCADE),
+        ForeignKey(entity = InstrumentBrands::class, parentColumns = ["instrumentBrandID"], childColumns = ["instrumentBrandID"], onDelete = CASCADE, onUpdate = CASCADE)
 ])
 data class MusicalInstruments(
     @PrimaryKey(autoGenerate = true) val musicalInstrumentID: Int,

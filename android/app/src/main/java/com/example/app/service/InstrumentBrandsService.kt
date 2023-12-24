@@ -12,6 +12,12 @@ class InstrumentBrandsService(private val repository: InstrumentBrandsRepository
         repository.addInstrumentBrand(newInstrumentBrand)
     }
 
+    fun insertAll(instrumentBrandsList: List<InstrumentBrands>){
+        instrumentBrandsList.forEach {
+            repository.addInstrumentBrand(it);
+        }
+    }
+
     fun deleteInstrumentBrand(instrumentBrand: InstrumentBrands) {
         repository.deleteInstrumentBrand(instrumentBrand)
     }

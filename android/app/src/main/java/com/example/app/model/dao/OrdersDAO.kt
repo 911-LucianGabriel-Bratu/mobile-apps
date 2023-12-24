@@ -3,6 +3,7 @@ package com.example.app.model.dao
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.app.model.Orders
@@ -10,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface OrdersDAO {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(order: Orders)
 
     @Update

@@ -12,6 +12,12 @@ class OrdersService(private val repository: OrdersRepository) {
         repository.addOrder(newOrder)
     }
 
+    fun insertAll(ordersList: List<Orders>){
+        ordersList.forEach {
+            repository.addOrder(it);
+        }
+    }
+
     fun deleteOrder(order: Orders) {
         repository.deleteOrder(order)
     }

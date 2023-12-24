@@ -20,7 +20,7 @@ import com.example.app.model.utils.Converters
 @Database(
     entities = [InstrumentBrands::class, InstrumentCategories::class, MusicalInstruments::class,
         Orders::class, Users::class],
-    version = 2
+    version = 3
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase: RoomDatabase() {
