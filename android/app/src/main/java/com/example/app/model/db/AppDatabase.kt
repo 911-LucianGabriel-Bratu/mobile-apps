@@ -22,7 +22,7 @@ import com.example.app.model.utils.Converters
 @Database(
     entities = [InstrumentBrands::class, InstrumentCategories::class, MusicalInstruments::class,
         Orders::class, Users::class, PendingOperations::class],
-    version = 4
+    version = 6
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase: RoomDatabase() {
@@ -47,6 +47,7 @@ abstract class AppDatabase: RoomDatabase() {
                         AppDatabase::class.java,
                         "app_database"
                     ).fallbackToDestructiveMigration()
+                        .allowMainThreadQueries()
                         .build()
                     INSTANCE = instance
                 }

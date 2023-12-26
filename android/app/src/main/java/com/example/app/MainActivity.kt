@@ -8,12 +8,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.example.app.api.RetrofitClient
 import com.example.app.api.WebSocketListener
 import com.example.app.api.WebSocketManager
 import com.example.app.model.InstrumentBrands
 import com.example.app.model.InstrumentCategories
 import com.example.app.model.MusicalInstruments
 import com.example.app.model.Orders
+import com.example.app.model.PendingOperations
 import com.example.app.model.Users
 import com.example.app.model.db.AppDatabase
 import com.example.app.model.response.InstrumentBrandsResponse
@@ -26,14 +28,17 @@ import com.example.app.repository.InstrumentBrandsRepository
 import com.example.app.repository.InstrumentCategoriesRepository
 import com.example.app.repository.MusicalInstrumentsRepository
 import com.example.app.repository.OrdersRepository
+import com.example.app.repository.PendingOperationsRepository
 import com.example.app.repository.UsersRepository
 import com.example.app.service.InstrumentBrandsService
 import com.example.app.service.InstrumentCategoriesService
 import com.example.app.service.MusicalInstrumentsService
 import com.example.app.service.OrdersService
+import com.example.app.service.PendingOperationsService
 import com.example.app.service.UsersService
 import com.example.app.ui.theme.AppTheme
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
@@ -45,12 +50,21 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.Response
 import okhttp3.WebSocket
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.awaitResponse
+import java.text.DateFormat
 
 class MainActivity : ComponentActivity() {
     private lateinit var appDatabase: AppDatabase
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         appDatabase = AppDatabase.getDatabase(applicationContext)
+        val pendingOperationsService = PendingOperationsService(PendingOperationsRepository(appDatabase.pendingOperationsDao()))
+        val ordersService = OrdersService(OrdersRepository(appDatabase.ordersDao()))
+        CoroutineScope(Dispatchers.Main).launch {
+            sendChangesToServer(pendingOperationsService, ordersService)
+        }
         CoroutineScope(Dispatchers.IO).launch {
             populateDBFromServer(appDatabase)
         }
@@ -61,12 +75,61 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private suspend fun sendChangesToServer(
+        pendingOperationsService: PendingOperationsService,
+        ordersService: OrdersService
+    ) {
+        val orderApi = RetrofitClient.getOrderApi()
+
+        while (true) {
+            val pendingOperationsList = pendingOperationsService.getAllPendingOperations()
+            for (pendingOperation in pendingOperationsList) {
+                val order: Orders? = ordersService.getOrderByID(pendingOperation.orderID)
+                if (order != null && pendingOperation.operationType != "delete") {
+                    when (pendingOperation.operationType) {
+                        "create" -> {
+                            val call = orderApi.createOrder(order)
+                            handleApiCall(call, pendingOperationsService, pendingOperation)
+                        }
+                        "update" -> {
+                            val call = orderApi.updateOrder(order.orderID, order)
+                            handleApiCall(call, pendingOperationsService, pendingOperation)
+                        }
+                    }
+                }
+                else if(pendingOperation.operationType == "delete"){
+                    val call = orderApi.deleteOrder(pendingOperation.orderID)
+                    handleApiCall(call, pendingOperationsService, pendingOperation)
+                }
+            }
+            Log.d("WAIT", "Waiting for 10 seconds before retrying communication with the server...")
+            delay(10000)
+        }
+    }
+
+    private suspend fun handleApiCall(
+        call: Call<Void>,
+        pendingOperationsService: PendingOperationsService,
+        pendingOperation: PendingOperations
+    ) {
+        try {
+            val response = call.awaitResponse()
+            if (response.isSuccessful) {
+                pendingOperationsService.deletePendingOperation(pendingOperation)
+            } else {
+                Log.d("FAILURE", "API call failed with code ${response.code()}")
+            }
+        } catch (e: Exception) {
+            Log.d("FAILURE", e.toString())
+        }
+    }
+
     private suspend fun populateDBFromServer(appDatabase: AppDatabase) = withContext(Dispatchers.IO) {
         populateInstrumentBrands(appDatabase)
         populateInstrumentCategories(appDatabase)
+        populateUsers(appDatabase)
         populateMusicalInstruments(appDatabase)
         populateOrders(appDatabase)
-        populateUsers(appDatabase)
     }
 
     private suspend fun populateInstrumentBrands(appDatabase: AppDatabase) = withContext(Dispatchers.IO){
@@ -213,9 +276,13 @@ class MainActivity : ComponentActivity() {
                 val ordersList: List<OrdersResponse>
 
                 if (it.startsWith("[")) {
-                    ordersList = Gson().fromJson(it, object : TypeToken<List<OrdersResponse>>() {}.type)
+                    val datePattern = "MMM d, yyyy, h:mm:ss a"
+                    val gson = GsonBuilder().setDateFormat(datePattern).create()
+                    ordersList = gson.fromJson(it, object : TypeToken<List<OrdersResponse>>() {}.type)
                 } else {
-                    val singleObject = Gson().fromJson(it, OrdersResponse::class.java)
+                    val datePattern = "MMM d, yyyy, h:mm:ss a"
+                    val gson = GsonBuilder().setDateFormat(datePattern).create()
+                    val singleObject = gson.fromJson(it, OrdersResponse::class.java)
                     ordersList = listOf(singleObject)
                 }
 

@@ -34,8 +34,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.app.api.RetrofitClient
 import com.example.app.model.Orders
+import com.example.app.model.PendingOperations
 import com.example.app.navigation.Routes
 import com.example.app.service.OrdersService
+import com.example.app.service.PendingOperationsService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,7 +46,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 @Composable
-fun CancelOrderPage(ordersService: OrdersService, navController: NavController){
+fun CancelOrderPage(ordersService: OrdersService, navController: NavController, pendingOperationsService: PendingOperationsService){
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val orderID = navBackStackEntry?.arguments?.getString("data")
 
@@ -67,7 +69,7 @@ fun CancelOrderPage(ordersService: OrdersService, navController: NavController){
             IconButton(
                 onClick = {
 
-                    cancelOrder(Integer.parseInt(orderID), ordersService){
+                    cancelOrder(Integer.parseInt(orderID), ordersService, pendingOperationsService){
                         wasSuccessful ->
                         if(wasSuccessful == "successful"){
                             Toast.makeText(currentContext, "Order cancelled", Toast.LENGTH_SHORT).show()
@@ -78,7 +80,7 @@ fun CancelOrderPage(ordersService: OrdersService, navController: NavController){
                         }
                         else if(wasSuccessful == "connectionError"){
                             Toast.makeText(currentContext, "You or the server may be offline. Order was cancelled locally", Toast.LENGTH_SHORT).show()
-                            //TODO handle server offline
+                            navController.navigateUp()
                         }
                         else if(wasSuccessful == "nullEntry"){
                             Toast.makeText(currentContext, "Null entry. Should not have happened.", Toast.LENGTH_SHORT).show()
@@ -114,9 +116,10 @@ fun CancelOrderPage(ordersService: OrdersService, navController: NavController){
 fun cancelOrder(
     orderID: Int,
     ordersService: OrdersService,
+    pendingOperationsService: PendingOperationsService,
     callback: (String) -> Unit
 ){
-    CoroutineScope(Dispatchers.IO).launch {
+    CoroutineScope(Dispatchers.Main).launch {
         var wasSuccessful: String
         val order: Orders? = ordersService.getOrderByID(orderID)
         if(order != null){
@@ -136,6 +139,14 @@ fun cancelOrder(
 
                 override fun onFailure(call: Call<Void>, t: Throwable) {
                     Log.d("FAILURE", t.toString())
+                    ordersService.deleteOrder(order)
+                    pendingOperationsService.addPendingOperation(
+                        PendingOperations(
+                            pendingOperationsService.getNextID(),
+                            orderID,
+                            "delete"
+                        )
+                    )
                     callback("connectionError")
                 }
             })

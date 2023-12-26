@@ -16,7 +16,6 @@ import java.util.Date;
 @Table(name = "Orders")
 public class Orders {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private int orderID;
 
     @ManyToOne

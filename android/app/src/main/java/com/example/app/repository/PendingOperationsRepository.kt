@@ -29,6 +29,12 @@ class PendingOperationsRepository(private val pendingOperationsDAO: PendingOpera
         }
     }
 
+    fun getFirstPendingOperation(){
+        coroutineScope.launch(Dispatchers.IO){
+            pendingOperationsDAO.getFirstPendingOperation()
+        }
+    }
+
     fun getNextID(): Int {
         val allPendingOperationIDs = pendingOperationsDAO.getAllPendingOperationsIds()
         val maxId = allPendingOperationIDs.maxOrNull() ?: 0

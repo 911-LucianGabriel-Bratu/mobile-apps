@@ -52,7 +52,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.app.api.RetrofitClient
 import com.example.app.model.Orders
+import com.example.app.model.PendingOperations
 import com.example.app.service.OrdersService
+import com.example.app.service.PendingOperationsService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -64,7 +66,7 @@ import kotlin.coroutines.coroutineContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditOrderPage(ordersService: OrdersService, navController: NavController){
+fun EditOrderPage(ordersService: OrdersService, navController: NavController, pendingOperationsService: PendingOperationsService){
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val orderID = navBackStackEntry?.arguments?.getString("data")
     val quantity = navBackStackEntry?.arguments?.getString("quantity")
@@ -113,7 +115,7 @@ fun EditOrderPage(ordersService: OrdersService, navController: NavController){
                 onClick = {
                     if(mutableQuantity != null && totalPrice != null){
                         if(mutableQuantity!!.toInt() > 0){
-                            updateOrder(Integer.parseInt(orderID), mutableQuantity!!.toInt(), Integer.parseInt(quantity), totalPrice.toFloat(), ordersService){
+                            updateOrder(Integer.parseInt(orderID), mutableQuantity!!.toInt(), Integer.parseInt(quantity), totalPrice.toFloat(), ordersService, pendingOperationsService){
                                 wasSuccessful ->
                                 if (wasSuccessful == "successful") {
                                     Toast.makeText(currentContext, "Order updated successfully", Toast.LENGTH_SHORT).show()
@@ -123,7 +125,7 @@ fun EditOrderPage(ordersService: OrdersService, navController: NavController){
                                 }
                                 else if(wasSuccessful == "connectionError"){
                                     Toast.makeText(currentContext, "You or the server may be offline. Order was updated locally", Toast.LENGTH_SHORT).show()
-                                    //TODO handle server offline
+                                    navController.navigateUp()
                                 }
                                 else if(wasSuccessful == "nullEntry"){
                                     Toast.makeText(currentContext, "Null entry. Should not have happened.", Toast.LENGTH_SHORT).show()
@@ -166,9 +168,10 @@ fun updateOrder(
     oldQuantity: Int,
     totalPrice: Float,
     ordersService: OrdersService,
+    pendingOperationsService: PendingOperationsService,
     callback: (String) -> Unit
 ){
-    CoroutineScope(Dispatchers.IO).launch {
+    CoroutineScope(Dispatchers.Main).launch {
         var wasSuccessful: String
         val total: Float = (totalPrice/oldQuantity) * quantity
         val oldOrder: Orders? = ordersService.getOrderByID(orderID)
@@ -190,6 +193,14 @@ fun updateOrder(
 
                 override fun onFailure(call: Call<Void>, t: Throwable) {
                     Log.d("FAILURE", t.toString())
+                    ordersService.updateOrder(newOrder)
+                    pendingOperationsService.addPendingOperation(
+                        PendingOperations(
+                            pendingOperationsService.getNextID(),
+                            newOrder.orderID,
+                            "update"
+                        )
+                    )
                     callback("connectionError")
                 }
             })

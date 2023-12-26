@@ -19,8 +19,7 @@ public class OrdersDTO {
     private int orderID;
     private int musicalInstrumentID;
     private int userID;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MMM dd, yyyy hh:mm:ss a")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MMM d, yyyy h:mm:ss a", timezone = "UTC")
     private Date orderedAt;
     private int quantity;
     private float totalPrice;

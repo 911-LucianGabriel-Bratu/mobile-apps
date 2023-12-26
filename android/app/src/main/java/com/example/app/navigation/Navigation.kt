@@ -51,10 +51,12 @@ import com.example.app.repository.InstrumentBrandsRepository
 import com.example.app.repository.InstrumentCategoriesRepository
 import com.example.app.repository.MusicalInstrumentsRepository
 import com.example.app.repository.OrdersRepository
+import com.example.app.repository.PendingOperationsRepository
 import com.example.app.service.InstrumentBrandsService
 import com.example.app.service.InstrumentCategoriesService
 import com.example.app.service.MusicalInstrumentsService
 import com.example.app.service.OrdersService
+import com.example.app.service.PendingOperationsService
 import com.example.app.views.AboutScreen
 import com.example.app.views.CancelOrderPage
 import com.example.app.views.ConfirmationPage
@@ -74,6 +76,9 @@ import okhttp3.WebSocket
 @Composable
 fun Navigation(appDatabase: AppDatabase) {
     val navController = rememberNavController()
+    val pendingOperationsService = remember {
+        PendingOperationsService(PendingOperationsRepository(appDatabase.pendingOperationsDao()))
+    }
     val instrumentBrandsService = remember{
         InstrumentBrandsService(InstrumentBrandsRepository(appDatabase.instrumentBrandsDao()))
     }
@@ -86,44 +91,6 @@ fun Navigation(appDatabase: AppDatabase) {
     val ordersService = remember {
         OrdersService(OrdersRepository(appDatabase.ordersDao()))
     }
-
-//    var receivedMessages by remember { mutableStateOf(emptyList<String>()) }
-//    var isConnected by remember { mutableStateOf(false) }
-//
-//    val webSocketListener = remember {
-//        object : WebSocketListener() {
-//            override fun onOpen(webSocket: WebSocket, response: Response) {
-//                super.onOpen(webSocket, response)
-//                CoroutineScope(Dispatchers.Main).launch {
-//                    isConnected = true;
-//                }
-//            }
-//
-//            override fun onMessage(webSocket: WebSocket, text: String) {
-//                super.onMessage(webSocket, text)
-//                CoroutineScope(Dispatchers.Main).launch {
-//                    receivedMessages = receivedMessages + text
-//                }
-//            }
-//
-//            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-//                super.onFailure(webSocket, t, response)
-//                CoroutineScope(Dispatchers.Main).launch {
-//                    isConnected = false;
-//                }
-//            }
-//
-//            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-//                super.onClosing(webSocket, code, reason)
-//                CoroutineScope(Dispatchers.Main).launch {
-//                    isConnected = false;
-//                }
-//            }
-//        }
-//    }
-//    var webSocketManager by remember { mutableStateOf(WebSocketManager(webSocketListener)) }
-//    webSocketManager.connectWebSocket("ws://10.0.2.2:8080/api/ws/msg")
-
 
     NavHost(navController = navController, startDestination = Routes.login){
         composable(
@@ -220,17 +187,17 @@ fun Navigation(appDatabase: AppDatabase) {
         composable(
             route = Routes.confirmation,
         ){
-            ConfirmationPage(navController, musicalInstrumentService, ordersService)
+            ConfirmationPage(navController, musicalInstrumentService, ordersService, pendingOperationsService)
         }
         composable(
             route = Routes.editOrder,
         ){
-            EditOrderPage(ordersService, navController)
+            EditOrderPage(ordersService, navController, pendingOperationsService)
         }
         composable(
             route = Routes.cancelOrder,
         ){
-            CancelOrderPage(ordersService, navController)
+            CancelOrderPage(ordersService, navController, pendingOperationsService)
         }
     }
 }

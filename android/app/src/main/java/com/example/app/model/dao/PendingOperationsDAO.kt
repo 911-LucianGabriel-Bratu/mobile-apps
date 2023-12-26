@@ -29,4 +29,7 @@ interface PendingOperationsDAO {
 
     @Query("SELECT * FROM PendingOperations")
     fun getAllPendingOperations(): Flow<List<PendingOperations>>
+
+    @Query("SELECT * FROM PendingOperations LIMIT 1")
+    fun getFirstPendingOperation(): PendingOperations?
 }

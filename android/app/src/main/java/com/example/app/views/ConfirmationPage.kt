@@ -38,9 +38,11 @@ import coil.compose.AsyncImage
 import com.example.app.api.RetrofitClient
 import com.example.app.model.MusicalInstruments
 import com.example.app.model.Orders
+import com.example.app.model.PendingOperations
 import com.example.app.navigation.Routes
 import com.example.app.service.MusicalInstrumentsService
 import com.example.app.service.OrdersService
+import com.example.app.service.PendingOperationsService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,7 +53,8 @@ import retrofit2.Response
 
 @Composable
 fun ConfirmationPage(navController: NavController,
-                     musicalInstrumentsService: MusicalInstrumentsService, ordersService: OrdersService){
+                     musicalInstrumentsService: MusicalInstrumentsService, ordersService: OrdersService,
+                        pendingOperationsService: PendingOperationsService){
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val instrumentID = navBackStackEntry?.arguments?.getString("data")
     val musicalInstrument = remember { mutableStateOf<MusicalInstruments?>(null) }
@@ -64,7 +67,9 @@ fun ConfirmationPage(navController: NavController,
         }
     }
     Column(
-        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -105,7 +110,8 @@ fun ConfirmationPage(navController: NavController,
                     placeOrder(
                         Integer.parseInt(instrumentID),
                         musicalInstrumentsService,
-                        ordersService
+                        ordersService,
+                        pendingOperationsService
                     ){
                         wasSuccessful ->
                         if (wasSuccessful == "successful") {
@@ -116,7 +122,7 @@ fun ConfirmationPage(navController: NavController,
                         }
                         else if (wasSuccessful == "connectionError"){
                             Toast.makeText(currentContext, "You or the server may be offline. Order was placed locally", Toast.LENGTH_SHORT).show()
-                            //TODO handle server offline
+                            navController.navigateUp()
                         }
                         else if (wasSuccessful == "nullEntry"){
                             Toast.makeText(currentContext, "Null entry. Should not have happened.", Toast.LENGTH_SHORT).show()
@@ -142,9 +148,10 @@ fun placeOrder(
     instrumentID: Int,
     musicalInstrumentsService: MusicalInstrumentsService,
     ordersService: OrdersService,
+    pendingOperationsService: PendingOperationsService,
     callback: (String) -> Unit
 ) {
-    CoroutineScope(Dispatchers.IO).launch {
+    CoroutineScope(Dispatchers.Main).launch {
         var wasSuccessful: String
         val musicalInstrument: MusicalInstruments? = musicalInstrumentsService.getMusicalInstrumentByID(instrumentID)
 
@@ -174,6 +181,12 @@ fun placeOrder(
 
                 override fun onFailure(call: Call<Void>, t: Throwable) {
                     Log.d("FAILURE", t.toString())
+                    ordersService.addOrder(newOrder)
+                    pendingOperationsService.addPendingOperation(PendingOperations(
+                        pendingOperationsService.getNextID(),
+                        newOrder.orderID,
+                        "create"
+                    ))
                     callback("connectionError")
                 }
             })
