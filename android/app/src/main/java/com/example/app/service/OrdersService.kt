@@ -18,6 +18,10 @@ class OrdersService(private val repository: OrdersRepository) {
         }
     }
 
+    fun getNextID(): Int {
+        return repository.getNextID()
+    }
+
     fun deleteOrder(order: Orders) {
         repository.deleteOrder(order)
     }

@@ -1,5 +1,7 @@
 package com.example.app.views
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -32,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
+import com.example.app.api.RetrofitClient
 import com.example.app.model.MusicalInstruments
 import com.example.app.model.Orders
 import com.example.app.navigation.Routes
@@ -40,7 +44,10 @@ import com.example.app.service.OrdersService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import retrofit2.Call
 import java.util.Date
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
 fun ConfirmationPage(navController: NavController,
@@ -48,6 +55,7 @@ fun ConfirmationPage(navController: NavController,
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val instrumentID = navBackStackEntry?.arguments?.getString("data")
     val musicalInstrument = remember { mutableStateOf<MusicalInstruments?>(null) }
+    val currentContext = LocalContext.current
 
     LaunchedEffect(instrumentID) {
         instrumentID?.let { id ->
@@ -94,12 +102,19 @@ fun ConfirmationPage(navController: NavController,
         {
             Row {
                 Button(onClick = {
-                    navController.navigateUp()
                     placeOrder(
                         Integer.parseInt(instrumentID),
                         musicalInstrumentsService,
                         ordersService
-                    )
+                    ){
+                        wasSuccessful ->
+                        if (wasSuccessful) {
+                            Toast.makeText(currentContext, "Order placed successfully", Toast.LENGTH_SHORT).show()
+                            navController.navigateUp()
+                        } else {
+                            Toast.makeText(currentContext, "Could not place order. Please try again.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
                 ) {
                     Text(text = "Confirm")
@@ -116,13 +131,47 @@ fun ConfirmationPage(navController: NavController,
     }
 }
 
-fun placeOrder(instrumentID: Int, musicalInstrumentsService: MusicalInstrumentsService,
-               ordersService: OrdersService){
+fun placeOrder(
+    instrumentID: Int,
+    musicalInstrumentsService: MusicalInstrumentsService,
+    ordersService: OrdersService,
+    callback: (Boolean) -> Unit
+) {
     CoroutineScope(Dispatchers.IO).launch {
+        var wasSuccessful = false
         val musicalInstrument: MusicalInstruments? = musicalInstrumentsService.getMusicalInstrumentByID(instrumentID)
+
         if (musicalInstrument != null) {
-            ordersService.addOrder(Orders(0, musicalInstrument.musicalInstrumentID, 1, Date(), 1, musicalInstrument.price, false))
+            val newOrder = Orders(
+                ordersService.getNextID(),
+                musicalInstrument.musicalInstrumentID,
+                1,
+                Date(),
+                1,
+                musicalInstrument.price,
+                false
+            )
+            val orderApi = RetrofitClient.getOrderApi()
+
+            val call = orderApi.createOrder(newOrder)
+            call.enqueue(object : Callback<Void> {
+                override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                    if (response.isSuccessful) {
+                        ordersService.addOrder(newOrder)
+                        wasSuccessful = true
+                    } else {
+                        wasSuccessful = false
+                    }
+                    callback(wasSuccessful)
+                }
+
+                override fun onFailure(call: Call<Void>, t: Throwable) {
+                    Log.d("FAILURE", t.toString())
+                    callback(false)
+                }
+            })
+        } else {
+            callback(false)
         }
     }
-
 }

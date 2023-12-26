@@ -1,5 +1,6 @@
 package com.example.app.views
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -49,11 +50,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.app.api.RetrofitClient
 import com.example.app.model.Orders
 import com.example.app.service.OrdersService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.Date
 import kotlin.coroutines.coroutineContext
 
@@ -109,7 +114,15 @@ fun EditOrderPage(ordersService: OrdersService, navController: NavController){
                     if(mutableQuantity != null && totalPrice != null){
                         if(mutableQuantity!!.toInt() > 0){
                             navController.navigateUp()
-                            updateOrder(Integer.parseInt(orderID), mutableQuantity!!.toInt(), Integer.parseInt(quantity), totalPrice.toFloat(), ordersService)
+                            updateOrder(Integer.parseInt(orderID), mutableQuantity!!.toInt(), Integer.parseInt(quantity), totalPrice.toFloat(), ordersService){
+                                wasSuccessful ->
+                                if (wasSuccessful) {
+                                    Toast.makeText(currentContext, "Order updated successfully", Toast.LENGTH_SHORT).show()
+                                    navController.navigateUp()
+                                } else {
+                                    Toast.makeText(currentContext, "Could not update order. Please try again.", Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         }
                         else{
                             Toast.makeText(currentContext, "Quantity must be greater than 0!", Toast.LENGTH_SHORT).show()
@@ -141,13 +154,42 @@ fun EditOrderPage(ordersService: OrdersService, navController: NavController){
     }
 }
 
-fun updateOrder(orderID: Int, quantity: Int, oldQuantity: Int, totalPrice: Float, ordersService: OrdersService){
+fun updateOrder(
+    orderID: Int,
+    quantity: Int,
+    oldQuantity: Int,
+    totalPrice: Float,
+    ordersService: OrdersService,
+    callback: (Boolean) -> Unit
+){
     CoroutineScope(Dispatchers.IO).launch {
+        var wasSuccessful = false
         val total: Float = (totalPrice/oldQuantity) * quantity
         val oldOrder: Orders? = ordersService.getOrderByID(orderID)
         if(oldOrder != null){
             val newOrder: Orders = Orders(orderID, oldOrder.musicalInstrumentID, oldOrder.userID, Date(), quantity, total, false)
-            ordersService.updateOrder(newOrder)
+            val orderApi = RetrofitClient.getOrderApi()
+
+            val call = orderApi.updateOrder(orderID, newOrder)
+            call.enqueue(object : Callback<Void> {
+                override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                    if (response.isSuccessful) {
+                        ordersService.updateOrder(newOrder)
+                        wasSuccessful = true
+                    } else {
+                        wasSuccessful = false
+                    }
+                    callback(wasSuccessful)
+                }
+
+                override fun onFailure(call: Call<Void>, t: Throwable) {
+                    Log.d("FAILURE", t.toString())
+                    callback(false)
+                }
+            })
+        }
+        else {
+            callback(false)
         }
     }
 }

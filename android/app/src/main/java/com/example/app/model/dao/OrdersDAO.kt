@@ -31,4 +31,7 @@ interface OrdersDAO {
 
     @Query("SELECT * FROM Orders WHERE musicalInstrumentID = :instrumentId")
     fun getOrdersByInstrument(instrumentId: Int): Flow<List<Orders>>
+
+    @Query("SELECT orderID FROM Orders")
+    fun getAllOrderIds(): List<Int>
 }

@@ -29,6 +29,12 @@ class OrdersRepository(private val ordersDao: OrdersDAO) {
         }
     }
 
+    fun getNextID(): Int {
+        val allOrderIds = ordersDao.getAllOrderIds()
+        val maxId = allOrderIds.maxOrNull() ?: 0
+        return maxId + 1
+    }
+
     suspend fun getOrderByID(id: Int): Orders? {
         return ordersDao.getOrderById(id)
     }

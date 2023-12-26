@@ -1,5 +1,6 @@
 package com.example.app.views
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,12 +32,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.app.api.RetrofitClient
 import com.example.app.model.Orders
 import com.example.app.navigation.Routes
 import com.example.app.service.OrdersService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 @Composable
 fun CancelOrderPage(ordersService: OrdersService, navController: NavController){
@@ -61,9 +66,18 @@ fun CancelOrderPage(ordersService: OrdersService, navController: NavController){
             val currentContext = LocalContext.current
             IconButton(
                 onClick = {
-                    navController.navigateUp()
-                    cancelOrder(Integer.parseInt(orderID), ordersService)
-                    Toast.makeText(currentContext, "Order cancelled", Toast.LENGTH_SHORT).show()
+
+                    cancelOrder(Integer.parseInt(orderID), ordersService){
+                        wasSuccessful ->
+                        if(wasSuccessful){
+                            Toast.makeText(currentContext, "Order cancelled", Toast.LENGTH_SHORT).show()
+                            navController.navigateUp()
+                        }
+                        else{
+                            Toast.makeText(currentContext, "Order could not be cancelled. Please try again.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
                 }
             )
             {
@@ -90,11 +104,36 @@ fun CancelOrderPage(ordersService: OrdersService, navController: NavController){
     }
 }
 
-fun cancelOrder(orderID: Int, ordersService: OrdersService){
+fun cancelOrder(
+    orderID: Int,
+    ordersService: OrdersService,
+    callback: (Boolean) -> Unit
+){
     CoroutineScope(Dispatchers.IO).launch {
+        var wasSuccessful = false
         val order: Orders? = ordersService.getOrderByID(orderID)
         if(order != null){
-            ordersService.deleteOrder(order)
+            val orderApi = RetrofitClient.getOrderApi()
+
+            val call = orderApi.deleteOrder(orderID)
+            call.enqueue(object : Callback<Void> {
+                override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                    if (response.isSuccessful) {
+                        ordersService.deleteOrder(order)
+                        wasSuccessful = true
+                    } else {
+                        wasSuccessful = false
+                    }
+                    callback(wasSuccessful)
+                }
+
+                override fun onFailure(call: Call<Void>, t: Throwable) {
+                    Log.d("FAILURE", t.toString())
+                    callback(false)
+                }
+            })
+        }else {
+            callback(false)
         }
     }
 }
