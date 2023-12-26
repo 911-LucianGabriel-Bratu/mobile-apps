@@ -9,18 +9,20 @@ import com.example.app.model.InstrumentBrands
 import com.example.app.model.InstrumentCategories
 import com.example.app.model.MusicalInstruments
 import com.example.app.model.Orders
+import com.example.app.model.PendingOperations
 import com.example.app.model.Users
 import com.example.app.model.dao.InstrumentBrandsDAO
 import com.example.app.model.dao.InstrumentCategoriesDAO
 import com.example.app.model.dao.MusicalInstrumentsDAO
 import com.example.app.model.dao.OrdersDAO
+import com.example.app.model.dao.PendingOperationsDAO
 import com.example.app.model.dao.UsersDAO
 import com.example.app.model.utils.Converters
 
 @Database(
     entities = [InstrumentBrands::class, InstrumentCategories::class, MusicalInstruments::class,
-        Orders::class, Users::class],
-    version = 3
+        Orders::class, Users::class, PendingOperations::class],
+    version = 4
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase: RoomDatabase() {
@@ -29,6 +31,8 @@ abstract class AppDatabase: RoomDatabase() {
     abstract fun musicalInstrumentsDao(): MusicalInstrumentsDAO
     abstract fun ordersDao(): OrdersDAO
     abstract fun usersDao(): UsersDAO
+
+    abstract fun pendingOperationsDao(): PendingOperationsDAO
 
     companion object{
         @Volatile
