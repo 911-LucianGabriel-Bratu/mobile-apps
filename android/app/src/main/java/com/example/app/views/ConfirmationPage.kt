@@ -108,11 +108,18 @@ fun ConfirmationPage(navController: NavController,
                         ordersService
                     ){
                         wasSuccessful ->
-                        if (wasSuccessful) {
+                        if (wasSuccessful == "successful") {
                             Toast.makeText(currentContext, "Order placed successfully", Toast.LENGTH_SHORT).show()
                             navController.navigateUp()
-                        } else {
-                            Toast.makeText(currentContext, "Could not place order. Please try again.", Toast.LENGTH_SHORT).show()
+                        } else if(wasSuccessful == "serverError"){
+                            Toast.makeText(currentContext, "Server has encountered an error. Could not place order.", Toast.LENGTH_SHORT).show()
+                        }
+                        else if (wasSuccessful == "connectionError"){
+                            Toast.makeText(currentContext, "You or the server may be offline. Order was placed locally", Toast.LENGTH_SHORT).show()
+                            //TODO handle server offline
+                        }
+                        else if (wasSuccessful == "nullEntry"){
+                            Toast.makeText(currentContext, "Null entry. Should not have happened.", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -135,10 +142,10 @@ fun placeOrder(
     instrumentID: Int,
     musicalInstrumentsService: MusicalInstrumentsService,
     ordersService: OrdersService,
-    callback: (Boolean) -> Unit
+    callback: (String) -> Unit
 ) {
     CoroutineScope(Dispatchers.IO).launch {
-        var wasSuccessful = false
+        var wasSuccessful: String
         val musicalInstrument: MusicalInstruments? = musicalInstrumentsService.getMusicalInstrumentByID(instrumentID)
 
         if (musicalInstrument != null) {
@@ -158,20 +165,20 @@ fun placeOrder(
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     if (response.isSuccessful) {
                         ordersService.addOrder(newOrder)
-                        wasSuccessful = true
+                        wasSuccessful = "successful"
                     } else {
-                        wasSuccessful = false
+                        wasSuccessful = "serverError"
                     }
                     callback(wasSuccessful)
                 }
 
                 override fun onFailure(call: Call<Void>, t: Throwable) {
                     Log.d("FAILURE", t.toString())
-                    callback(false)
+                    callback("connectionError")
                 }
             })
         } else {
-            callback(false)
+            callback("nullEntry")
         }
     }
 }

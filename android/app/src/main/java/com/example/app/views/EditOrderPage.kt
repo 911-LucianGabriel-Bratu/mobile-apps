@@ -113,14 +113,20 @@ fun EditOrderPage(ordersService: OrdersService, navController: NavController){
                 onClick = {
                     if(mutableQuantity != null && totalPrice != null){
                         if(mutableQuantity!!.toInt() > 0){
-                            navController.navigateUp()
                             updateOrder(Integer.parseInt(orderID), mutableQuantity!!.toInt(), Integer.parseInt(quantity), totalPrice.toFloat(), ordersService){
                                 wasSuccessful ->
-                                if (wasSuccessful) {
+                                if (wasSuccessful == "successful") {
                                     Toast.makeText(currentContext, "Order updated successfully", Toast.LENGTH_SHORT).show()
                                     navController.navigateUp()
-                                } else {
-                                    Toast.makeText(currentContext, "Could not update order. Please try again.", Toast.LENGTH_SHORT).show()
+                                } else if(wasSuccessful == "serverError"){
+                                    Toast.makeText(currentContext, "Server has encountered an error. Could not update order.", Toast.LENGTH_SHORT).show()
+                                }
+                                else if(wasSuccessful == "connectionError"){
+                                    Toast.makeText(currentContext, "You or the server may be offline. Order was updated locally", Toast.LENGTH_SHORT).show()
+                                    //TODO handle server offline
+                                }
+                                else if(wasSuccessful == "nullEntry"){
+                                    Toast.makeText(currentContext, "Null entry. Should not have happened.", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
@@ -160,10 +166,10 @@ fun updateOrder(
     oldQuantity: Int,
     totalPrice: Float,
     ordersService: OrdersService,
-    callback: (Boolean) -> Unit
+    callback: (String) -> Unit
 ){
     CoroutineScope(Dispatchers.IO).launch {
-        var wasSuccessful = false
+        var wasSuccessful: String
         val total: Float = (totalPrice/oldQuantity) * quantity
         val oldOrder: Orders? = ordersService.getOrderByID(orderID)
         if(oldOrder != null){
@@ -175,21 +181,21 @@ fun updateOrder(
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     if (response.isSuccessful) {
                         ordersService.updateOrder(newOrder)
-                        wasSuccessful = true
+                        wasSuccessful = "successful"
                     } else {
-                        wasSuccessful = false
+                        wasSuccessful = "serverError"
                     }
                     callback(wasSuccessful)
                 }
 
                 override fun onFailure(call: Call<Void>, t: Throwable) {
                     Log.d("FAILURE", t.toString())
-                    callback(false)
+                    callback("connectionError")
                 }
             })
         }
         else {
-            callback(false)
+            callback("nullEntry")
         }
     }
 }

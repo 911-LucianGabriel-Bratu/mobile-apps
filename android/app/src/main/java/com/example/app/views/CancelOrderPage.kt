@@ -69,12 +69,19 @@ fun CancelOrderPage(ordersService: OrdersService, navController: NavController){
 
                     cancelOrder(Integer.parseInt(orderID), ordersService){
                         wasSuccessful ->
-                        if(wasSuccessful){
+                        if(wasSuccessful == "successful"){
                             Toast.makeText(currentContext, "Order cancelled", Toast.LENGTH_SHORT).show()
                             navController.navigateUp()
                         }
-                        else{
-                            Toast.makeText(currentContext, "Order could not be cancelled. Please try again.", Toast.LENGTH_SHORT).show()
+                        else if(wasSuccessful == "serverError"){
+                            Toast.makeText(currentContext, "Server has encountered an error. Could not cancel order.", Toast.LENGTH_SHORT).show()
+                        }
+                        else if(wasSuccessful == "connectionError"){
+                            Toast.makeText(currentContext, "You or the server may be offline. Order was cancelled locally", Toast.LENGTH_SHORT).show()
+                            //TODO handle server offline
+                        }
+                        else if(wasSuccessful == "nullEntry"){
+                            Toast.makeText(currentContext, "Null entry. Should not have happened.", Toast.LENGTH_SHORT).show()
                         }
                     }
 
@@ -107,10 +114,10 @@ fun CancelOrderPage(ordersService: OrdersService, navController: NavController){
 fun cancelOrder(
     orderID: Int,
     ordersService: OrdersService,
-    callback: (Boolean) -> Unit
+    callback: (String) -> Unit
 ){
     CoroutineScope(Dispatchers.IO).launch {
-        var wasSuccessful = false
+        var wasSuccessful: String
         val order: Orders? = ordersService.getOrderByID(orderID)
         if(order != null){
             val orderApi = RetrofitClient.getOrderApi()
@@ -120,20 +127,20 @@ fun cancelOrder(
                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                     if (response.isSuccessful) {
                         ordersService.deleteOrder(order)
-                        wasSuccessful = true
+                        wasSuccessful = "successful"
                     } else {
-                        wasSuccessful = false
+                        wasSuccessful = "serverError"
                     }
                     callback(wasSuccessful)
                 }
 
                 override fun onFailure(call: Call<Void>, t: Throwable) {
                     Log.d("FAILURE", t.toString())
-                    callback(false)
+                    callback("connectionError")
                 }
             })
         }else {
-            callback(false)
+            callback("nullEntry")
         }
     }
 }
